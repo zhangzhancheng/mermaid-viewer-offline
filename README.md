@@ -15,15 +15,14 @@ mermaid-viewer-offline/
 
 ### 方式 1：使用简化的离线编辑器（推荐）
 
-1. **直接打开** `index.html` 文件
-2. 该版本使用 CDN 加载 Mermaid 库，如果网络可用即可使用
-3. 如果网络不可用，需要手动下载 Mermaid 库（见下方"完全离线方案"）
+1. **直接打开** `/START_HERE.html` 文件可以点击md和mermaid混合查看模式和mermaid模式
+两种模式
+md-viewer.html是md和mermaid混合查看模式，给了一个样例文件MD 《查看器使用说明.md》
+index.html是只进行mermaid离线查看模式
 
-### 方式 2：使用下载的完整网站
 
-1. 打开 `html/zh` 或 `html/zh_d2_0` 等文件
-2. 这些是从 mermaid-viewer.com 下载的页面
-3. 部分功能可能依赖在线资源
+![alt text](image-2.png)
+![alt text](image-1.png)
 
 ## 📝 功能说明
 
@@ -80,34 +79,6 @@ mermaid-viewer-offline/
                子分支 2
    ```
 
-## 🔧 完全离线方案
-
-如果要完全离线使用（不依赖任何网络连接），需要：
-
-### 步骤 1：下载 Mermaid 库
-
-访问以下地址下载 mermaid.min.js：
-```
-https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js
-```
-
-保存到 `mermaid-viewer-offline/js/` 目录
-
-### 步骤 2：修改 index.html
-
-找到这一行：
-```html
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-```
-
-改为：
-```html
-<script src="js/mermaid.min.js"></script>
-```
-
-### 步骤 3：打开使用
-
-直接双击 `index.html` 即可完全离线使用
 
 ## 💡 使用技巧
 
