@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mermaid Viewer 离线版 - 开始使用</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 50px 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 42px;
+            margin-bottom: 15px;
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .quick-start {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+        }
+
+        .quick-start h2 {
+            color: #1a237e;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .action-button {
+            display: block;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 25px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .action-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+
+        .action-button.primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+        }
+
+        .action-button.primary:hover {
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .action-button h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .action-button p {
+            font-size: 14px;
+            line-height: 1.6;
+            opacity: 0.8;
+        }
+
+        .action-button.primary p {
+            opacity: 0.95;
+        }
+
+        .steps {
+            background: #fff3e0;
+            border: 2px solid #ff9800;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .steps h3 {
+            color: #e65100;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .steps ol {
+            padding-left: 25px;
+        }
+
+        .steps li {
+            margin: 10px 0;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .feature {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+
+        .feature h4 {
+            color: #1a237e;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .feature p {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .note {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .note h4 {
+            color: #1565c0;
+            margin-bottom: 10px;
+        }
+
+        .note ul {
+            padding-left: 20px;
+        }
+
+        .note li {
+            margin: 8px 0;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .file-list {
+            background: #f5f7fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .file-list h4 {
+            color: #1a237e;
+            margin-bottom: 15px;
+        }
+
+        .file-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Mermaid Viewer 离线版</h1>
+            <p>欢迎使用！这是您的本地 Mermaid 图表编辑器</p>
+        </div>
+
+        <div class="content">
+            <div class="quick-start">
+                <h2>🚀 快速开始</h2>
+                <div class="action-buttons">
+                    <a href="md-viewer.html" class="action-button primary">
+                        <h3>📄 MD 文件查看器</h3>
+                        <p>打开 MD/Markdown 文件，自动渲染 Mermaid 图表，支持全屏、缩放、导出</p>
+                    </a>
+
+                    <a href="index.html" class="action-button">
+                        <h3>📝 Mermaid 编辑器</h3>
+                        <p>纯 Mermaid 代码编辑器，实时预览、导出 SVG/PNG</p>
+                    </a>
+                </div>
+            </div>
+
+            <div class="features">
+                <div class="feature">
+                    <h4>📊 流程图</h4>
+                    <p>创建各种流程图、决策树</p>
+                </div>
+                <div class="feature">
+                    <h4>📅 时序图</h4>
+                    <p>展示对象间的交互过程</p>
+                </div>
+                <div class="feature">
+                    <h4>🗂️ 类图</h4>
+                    <p>绘制 UML 类图和接口</p>
+                </div>
+                <div class="feature">
+                    <h4>🔄 状态图</h4>
+                    <p>描述状态转换流程</p>
+                </div>
+                <div class="feature">
+                    <h4>📋 甘特图</h4>
+                    <p>项目进度计划管理</p>
+                </div>
+                <div class="feature">
+                    <h4>🎯 思维导图</h4>
+                    <p>整理思路和结构</p>
+                </div>
+            </div>
+            <div class="note">
+                <h4>⚠️ 重要提示</h4>
+                <ul>
+                    <li>推荐使用 <strong>Chrome、Edge、Firefox</strong> 等现代浏览器</li>
+                </ul>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px; padding-top: 30px; border-top: 2px solid #e0e0e0;">
+                <p style="color: #666; font-size: 14px;">
+                    📚 更多使用说明请查看 <strong>README.md</strong> 文档
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

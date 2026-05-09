@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown + Mermaid 查看器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .toolbar button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .file-list {
+            width: 250px;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .file-list h3 {
+            color: #1a237e;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .file-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f5f7fa;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .file-item:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .file-item.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .content {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            min-height: calc(100vh - 200px);
+            overflow: auto;
+        }
+
+        /* Markdown 样式 */
+        .markdown-body {
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .markdown-body h1,
+        .markdown-body h2,
+        .markdown-body h3,
+        .markdown-body h4,
+        .markdown-body h5,
+        .markdown-body h6 {
+            color: #1a237e;
+            margin: 24px 0 16px;
+            font-weight: bold;
+        }
+
+        .markdown-body h1 {
+            font-size: 32px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .markdown-body h2 {
+            font-size: 24px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+
+        .markdown-body h3 {
+            font-size: 20px;
+        }
+
+        .markdown-body p {
+            margin: 16px 0;
+        }
+
+        .markdown-body ul,
+        .markdown-body ol {
+            margin: 16px 0;
+            padding-left: 32px;
+        }
+
+        .markdown-body li {
+            margin: 8px 0;
+        }
+
+        .markdown-body code {
+            background: #f5f7fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            color: #e91e63;
+        }
+
+        .markdown-body pre {
+            background: #f5f7fa;
+            padding: 16px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 16px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .markdown-body pre code {
+            background: none;
+            padding: 0;
+            color: #333;
+        }
+
+        .markdown-body blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 16px;
+            margin: 16px 0;
+            color: #666;
+            background: #f5f7fa;
+            padding: 16px;
+            border-radius: 0 5px 5px 0;
+        }
+
+        .markdown-body table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 16px 0;
+        }
+
+        .markdown-body th,
+        .markdown-body td {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .markdown-body th {
+            background: #f5f7fa;
+            font-weight: bold;
+            color: #1a237e;
+        }
+
+        .markdown-body tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        /* Mermaid 图表容器 */
+        .mermaid-container {
+            margin: 24px 0;
+            background: #f9f9f9;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .mermaid-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mermaid-title {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .mermaid-toolbar {
+            display: flex;
+            gap: 8px;
+        }
+
+        .mermaid-toolbar button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .mermaid-toolbar button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .mermaid-content {
+            padding: 20px;
+            position: relative;
+        }
+
+        .mermaid-code {
+            display: none;
+            background: #f5f7fa;
+            padding: 15px;
+            border-top: 1px solid #e0e0e0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #333;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .mermaid-code.show {
+            display: block;
+        }
+
+        .mermaid-preview {
+            text-align: center;
+            overflow: auto;
+            min-height: 100px;
+            position: relative;
+            cursor: grab;
+        }
+
+        .mermaid-preview:active {
+            cursor: grabbing;
+        }
+
+        .mermaid-preview svg {
+            max-width: none;
+            height: auto;
+            transform-origin: center center;
+            transition: transform 0.1s ease-out;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        /* Mermaid 悬浮提示样式 */
+        .mermaid-tooltip {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            max-width: 400px;
+            word-wrap: break-word;
+            white-space: normal;
+            z-index: 10000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            line-height: 1.4;
+        }
+
+        .mermaid-tooltip.show {
+            opacity: 1;
+        }
+
+        /* Mermaid 节点悬浮样式 */
+        .mermaid-preview svg .node rect,
+        .mermaid-preview svg .node circle,
+        .mermaid-preview svg .node polygon,
+        .mermaid-preview svg .node path,
+        .mermaid-preview svg .edgeLabel,
+        .mermaid-preview svg .cluster rect {
+            cursor: pointer;
+        }
+
+        .mermaid-preview svg .node:hover rect,
+        .mermaid-preview svg .node:hover circle,
+        .mermaid-preview svg .node:hover polygon,
+        .mermaid-preview svg .node:hover path {
+            filter: brightness(1.1);
+            stroke-width: 3px;
+        }
+
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            background: #f5f7fa;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .zoom-slider {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #e0e0e0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .zoom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            cursor: pointer;
+        }
+
+        .zoom-level {
+            font-size: 13px;
+            color: #666;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px;
+            border-left: 4px solid #c62828;
+        }
+
+        /* 全屏模式 */
+        .fullscreen .mermaid-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1000;
+            border-radius: 0;
+        }
+
+        .fullscreen-exit {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+            background: rgba(102, 126, 234, 0.9);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            display: none;
+        }
+
+        .fullscreen .fullscreen-exit {
+            display: block;
+        }
+
+        .no-file {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .no-file h2 {
+            color: #1a237e;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <button class="fullscreen-exit" onclick="exitFullscreen()">退出全屏 ✕</button>
+
+    <!-- Mermaid 悬浮提示框 -->
+    <div class="mermaid-tooltip" id="mermaidTooltip"></div>
+
+    <div class="header">
+        <h1>📄 Markdown + Mermaid 查看器</h1>
+        <p>支持打开 MD 文件，自动渲染 Mermaid 图表，支持全屏、缩放、导出功能</p>
+        <div class="toolbar">
+            <button onclick="document.getElementById('fileInput').click()">📂 打开 MD 文件</button>
+            <button onclick="loadDemoFile()">📋 加载示例</button>
+            <button onclick="exportAll()">📤 导出所有图表</button>
+            <input type="file" id="fileInput" accept=".md,.markdown" style="display: none;" onchange="loadFile(event)">
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="file-list" id="fileList">
+            <h3>📑 目录</h3>
+            <div id="fileListContent">
+                <p style="color: #666; font-size: 13px;">打开 MD 文件后显示目录</p>
+            </div>
+        </div>
+
+        <div class="content">
+            <div id="markdownContent" class="markdown-body">
+                <div class="no-file">
+                    <h2>👋 欢迎使用</h2>
+                    <p>点击上方"打开 MD 文件"按钮选择要查看的文件</p>
+                    <p style="margin-top: 20px;">或点击"加载示例"查看演示效果</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 从本地 js 目录加载 marked 和 Mermaid -->
+    <script src="js/marked.min.js"></script>
+    <script src="js/mermaid.min.js"></script>
+    
+    <script>
+        let mermaidInitialized = false;
+        let mermaidCounter = 0;
+        let currentFileName = '';
+
+        // 初始化 Mermaid
+        async function initMermaid() {
+            if (!mermaidInitialized) {
+                try {
+                    await mermaid.initialize({
+                        startOnLoad: false,
+                        theme: 'default',
+                        securityLevel: 'loose',
+                        fontFamily: 'Microsoft YaHei, Arial, sans-serif',
+                    });
+                    mermaidInitialized = true;
+                } catch (error) {
+                    console.error('Mermaid 初始化失败:', error);
+                }
+            }
+        }
+
+        // 加载文件
+        async function loadFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            currentFileName = file.name;
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const content = e.target.result;
+                renderMarkdown(content);
+            };
+            
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        // 加载示例文件
+        function loadDemoFile() {
+            const demoContent = `# MI 架构图表示例
+
+## 概述
+
+本文档展示了 MI 系统的整体架构设计，包括各个组件之间的关系和数据流向。
+
+## 系统架构图
+
+\`\`\`mermaid
+graph TB
+    A[用户层] --> B[应用层]
+    B --> C[服务层]
+    C --> D[数据层]
+    
+    subgraph 用户层
+        A1[Web 用户]
+        A2[移动用户]
+        A3[API 用户]
+    end
+    
+    subgraph 应用层
+        B1[前端应用]
+        B2[管理后台]
+        B3[第三方集成]
+    end
+    
+    subgraph 服务层
+        C1[业务逻辑]
+        C2[认证授权]
+        C3[消息队列]
+    end
+    
+    subgraph 数据层
+        D1[(MySQL)]
+        D2[(Redis)]
+        D3[(MongoDB)]
+    end
+    
+    classDef default fill:#f5f7fa,stroke:#667eea,stroke-width:2px;
+    classDef user fill:#e3f2fd,stroke:#2196f3;
+    classDef app fill:#fff3e0,stroke:#ff9800;
+    classDef service fill:#e8f5e9,stroke:#4caf50;
+    classDef data fill:#fce4ec,stroke:#e91e63;
+    
+    class A1,A2,A3 user;
+    class B1,B2,B3 app;
+    class C1,C2,C3 service;
+    class D1,D2,D3 data;
+\`\`\`
+
+## 数据流程图
+
+\`\`\`mermaid
+sequenceDiagram
+    participant U as 用户
+    participant F as 前端
+    participant A as API
+    participant D as 数据库
+    
+    U->>F: 提交请求
+    F->>A: 发送 HTTP 请求
+    A->>D: 查询数据
+    D-->>A: 返回结果
+    A-->>F: 响应数据
+    F-->>U: 展示结果
+\`\`\`
+
+## 状态转换图
+
+\`\`\`mermaid
+stateDiagram-v2
+    [*] --> 初始化
+    初始化 --> 运行中
+    运行中 --> 暂停
+    暂停 --> 运行中
+    运行中 --> 错误
+    错误 --> 恢复
+    恢复 --> 运行中
+    运行中 --> 停止
+    停止 --> [*]
+\`\`\`
+
+## 类图示例
+
+\`\`\`mermaid
+classDiagram
+    class User {
+        +String name
+        +String email
+        +login()
+        +logout()
+    }
+    
+    class Admin {
+        +manageUsers()
+        +viewLogs()
+    }
+    
+    class Guest {
+        +browse()
+    }
+    
+    User <|-- Admin
+    User <|-- Guest
+\`\`\`
+
+## 甘特图示例
+
+\`\`\`mermaid
+gantt
+    title 项目开发计划
+    dateFormat  YYYY-MM-DD
+    section 需求分析
+    需求收集     :2024-01-01, 15d
+    需求评审     :after 需求收集，5d
+    section 设计阶段
+    架构设计     :2024-01-21, 10d
+    详细设计     :after 架构设计，10d
+    section 开发阶段
+    前端开发     :2024-02-01, 30d
+    后端开发     :2024-02-01, 30d
+    section 测试上线
+    系统测试     :2024-03-01, 15d
+    上线部署     :after 系统测试，5d
+\`\`\`
+
+## 总结
+
+以上是 MI 系统的完整架构设计，各个组件协同工作，确保系统的稳定运行。
+`;
+            currentFileName = '示例文档.md';
+            renderMarkdown(demoContent);
+        }
+
+        // 渲染 Markdown
+        async function renderMarkdown(content) {
+            await initMermaid();
+            
+            const container = document.getElementById('markdownContent');
+            
+            // 使用 marked 解析 Markdown
+            let html = marked.parse(content);
+            
+            // 处理 Mermaid 代码块
+            const mermaidRegex = /<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g;
+            html = html.replace(mermaidRegex, function(match, code) {
+                mermaidCounter++;
+                const mermaidId = `mermaid-${mermaidCounter}`;
+                
+                // 解码 HTML 实体
+                const decodedCode = decodeHtmlEntities(code);
+                
+                return `
+<div class="mermaid-container" id="container-${mermaidId}">
+    <div class="mermaid-header">
+        <span class="mermaid-title">📊 Mermaid 图表 #${mermaidCounter}</span>
+        <div class="mermaid-toolbar">
+            <button onclick="toggleCode('${mermaidId}')">📝 查看代码</button>
+            <button onclick="zoomInMermaid('${mermaidId}')">🔍 放大</button>
+            <button onclick="zoomOutMermaid('${mermaidId}')">🔎 缩小</button>
+            <button onclick="resetZoomMermaid('${mermaidId}')">⏺️ 重置</button>
+            <button onclick="toggleFullscreenMermaid('${mermaidId}')">⛶ 全屏</button>
+            <button onclick="exportSVG('${mermaidId}')">📤 SVG</button>
+            <button onclick="exportPNG('${mermaidId}')">🖼️ PNG</button>
+        </div>
+    </div>
+    <div class="mermaid-content">
+        <div class="mermaid-preview" id="preview-${mermaidId}">
+            <div class="loading">正在渲染图表...</div>
+        </div>
+        <div class="mermaid-code" id="code-${mermaidId}">${escapeHtml(decodedCode)}</div>
+    </div>
+    <div class="zoom-controls">
+        <button onclick="zoomOutMermaid('${mermaidId}')">-</button>
+        <input type="range" min="25" max="300" value="100" class="zoom-slider" 
+               id="slider-${mermaidId}" oninput="updateZoom('${mermaidId}')">
+        <button onclick="zoomInMermaid('${mermaidId}')">+</button>
+        <span class="zoom-level" id="zoom-${mermaidId}">100%</span>
+    </div>
+</div>
+`;
+            });
+            
+            container.innerHTML = html;
+            
+            // 渲染所有 Mermaid 图表
+            const mermaidBlocks = document.querySelectorAll('.mermaid-preview');
+            for (const block of mermaidBlocks) {
+                const id = block.id.replace('preview-', '');
+                const mermaidContainer = document.getElementById(`container-${id}`);
+                const codeElement = mermaidContainer.querySelector('.mermaid-code');
+                let code = codeElement.textContent.trim();
+                
+                // 预处理 Mermaid 代码
+                code = preprocessMermaidCode(code);
+                
+                try {
+                    const { svg } = await mermaid.render(`mermaid-svg-${id}`, code);
+                    block.innerHTML = svg;
+                    // 初始化拖拽功能
+                    initPanZoom(block);
+                } catch (error) {
+                    const errorMessage = error.message || '未知错误';
+                    const errorHtml = `
+                        <div class="error-message">
+                            <strong>图表渲染失败</strong><br><br>
+                            <div style="font-size: 12px; color: #c62828;">${errorMessage}</div>
+                            <br>
+                            <details>
+                                <summary style="cursor: pointer; font-size: 12px; color: #1565c0;">查看原始代码</summary>
+                                <pre style="background: #f5f7fa; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 11px; overflow-x: auto;">${escapeHtml(code)}</pre>
+                            </details>
+                            <br>
+                            <div style="font-size: 11px; color: #666;">
+                                <strong>常见修复建议：</strong><br>
+                                1. 箭头标签中的特殊字符需要加引号，如 <code>--&gt;|"HTTPS :80"|</code><br>
+                                2. 节点文本中包含括号、引号等特殊字符时需要转义<br>
+                                3. 检查是否有未闭合的括号或引号
+                            </div>
+                        </div>
+                    `;
+                    block.innerHTML = errorHtml;
+                }
+            }
+            
+            // 生成目录
+            generateTableOfContents();
+        }
+
+        // 解码 HTML 实体
+        function decodeHtmlEntities(text) {
+            const textarea = document.createElement('textarea');
+            textarea.innerHTML = text;
+            return textarea.value;
+        }
+
+        // 预处理 Mermaid 代码，修复常见语法问题
+        function preprocessMermaidCode(code) {
+            // 移除可能导致问题的 BOM 字符
+            code = code.replace(/^\uFEFF/, '');
+            
+            // 修复 flowchart 中箭头标签包含冒号的问题
+            // 例如: A -->|HTTPS :80| B 改为 A -->|"HTTPS :80"| B
+            code = code.replace(/-->\s*\|([^|]*:[^|]*)\|/g, function(match, label) {
+                // 如果标签中包含冒号且没有引号，则添加引号
+                if (!label.startsWith('"') && !label.endsWith('"')) {
+                    return '-->|"' + label.trim() + '"|';
+                }
+                return match;
+            });
+            
+            // 修复包含特殊字符的节点标签
+            code = code.replace(/\[([^\[\]]*:[^\[\]]*)\]/g, function(match, label) {
+                // 如果标签中包含特殊字符，尝试用引号包裹
+                if (!label.startsWith('"') && !label.endsWith('"')) {
+                    return '["' + label.trim() + '"]';
+                }
+                return match;
+            });
+            
+            return code;
+        }
+
+        // 转义 HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 初始化拖拽和缩放功能
+        function initPanZoom(element) {
+            const svg = element.querySelector('svg');
+            if (!svg) return;
+
+            // 存储拖拽状态
+            const state = {
+                isPanning: false,
+                startX: 0,
+                startY: 0,
+                translateX: 0,
+                translateY: 0,
+                scale: 1
+            };
+
+            // 鼠标按下
+            element.addEventListener('mousedown', function(e) {
+                // 只响应左键，且不在节点上时
+                if (e.button !== 0) return;
+                if (e.target.closest('.node') || e.target.closest('.edgeLabel')) return;
+                e.preventDefault();
+                state.isPanning = true;
+                state.startX = e.clientX - state.translateX;
+                state.startY = e.clientY - state.translateY;
+                element.style.cursor = 'grabbing';
+            });
+
+            // 鼠标移动
+            document.addEventListener('mousemove', function(e) {
+                if (!state.isPanning) return;
+                e.preventDefault();
+                state.translateX = e.clientX - state.startX;
+                state.translateY = e.clientY - state.startY;
+                updateTransform(svg, state);
+            });
+
+            // 鼠标松开
+            document.addEventListener('mouseup', function() {
+                if (state.isPanning) {
+                    state.isPanning = false;
+                    element.style.cursor = 'grab';
+                }
+            });
+
+            // 鼠标离开元素
+            element.addEventListener('mouseleave', function() {
+                if (state.isPanning) {
+                    state.isPanning = false;
+                    element.style.cursor = 'grab';
+                }
+            });
+
+            // 滚轮缩放
+            element.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                const newScale = Math.min(Math.max(state.scale * delta, 0.1), 5);
+
+                // 计算鼠标位置相对于 SVG 的偏移
+                const rect = element.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                // 计算新的偏移量，使缩放以鼠标位置为中心
+                state.translateX = mouseX - (mouseX - state.translateX) * (newScale / state.scale);
+                state.translateY = mouseY - (mouseY - state.translateY) * (newScale / state.scale);
+                state.scale = newScale;
+
+                updateTransform(svg, state);
+            }, { passive: false });
+
+            // 双击重置
+            element.addEventListener('dblclick', function(e) {
+                e.preventDefault();
+                state.translateX = 0;
+                state.translateY = 0;
+                state.scale = 1;
+                updateTransform(svg, state);
+            });
+
+            // 更新变换
+            function updateTransform(svg, state) {
+                svg.style.transform = `translate(${state.translateX}px, ${state.translateY}px) scale(${state.scale})`;
+                svg.style.transformOrigin = '0 0';
+            }
+
+            // 存储状态以便外部访问
+            element._panZoomState = state;
+
+            // 初始化悬浮提示
+            initHoverTooltip(element);
+        }
+
+        // 初始化悬浮提示功能
+        function initHoverTooltip(container) {
+            const tooltip = document.getElementById('mermaidTooltip');
+            const svg = container.querySelector('svg');
+            if (!svg || !tooltip) return;
+
+            // 为所有节点添加悬浮事件
+            const nodes = svg.querySelectorAll('.node, .edgeLabel, .cluster');
+
+            nodes.forEach(function(node) {
+                // 获取节点的文本内容
+                const texts = node.querySelectorAll('text, foreignObject');
+                let fullText = '';
+                texts.forEach(function(t) {
+                    fullText += t.textContent.trim() + ' ';
+                });
+                fullText = fullText.trim();
+
+                if (fullText) {
+                    node.setAttribute('data-tooltip', fullText);
+                }
+
+                node.addEventListener('mouseenter', function(e) {
+                    const text = this.getAttribute('data-tooltip');
+                    if (text) {
+                        tooltip.textContent = text;
+                        tooltip.classList.add('show');
+                        updateTooltipPosition(e);
+                    }
+                });
+
+                node.addEventListener('mousemove', function(e) {
+                    updateTooltipPosition(e);
+                });
+
+                node.addEventListener('mouseleave', function() {
+                    tooltip.classList.remove('show');
+                });
+            });
+
+            function updateTooltipPosition(e) {
+                const x = e.clientX + 15;
+                const y = e.clientY + 15;
+
+                // 防止超出屏幕
+                const tooltipRect = tooltip.getBoundingClientRect();
+                const maxX = window.innerWidth - tooltipRect.width - 10;
+                const maxY = window.innerHeight - tooltipRect.height - 10;
+
+                tooltip.style.left = Math.min(x, maxX) + 'px';
+                tooltip.style.top = Math.min(y, maxY) + 'px';
+            }
+        }
+
+        // 生成目录
+        function generateTableOfContents() {
+            const container = document.getElementById('fileListContent');
+            const headings = document.querySelectorAll('#markdownContent h1, #markdownContent h2, #markdownContent h3');
+            
+            if (headings.length === 0) {
+                container.innerHTML = '<p style="color: #666; font-size: 13px;">无目录结构</p>';
+                return;
+            }
+            
+            let html = `<p style="color: #666; font-size: 12px; margin-bottom: 10px;">${currentFileName || '当前文档'}</p>`;
+            
+            headings.forEach((heading, index) => {
+                const level = heading.tagName.toLowerCase();
+                const text = heading.textContent;
+                const id = `heading-${index}`;
+                heading.id = id;
+                
+                const indent = (level === 'h1' ? 0 : level === 'h2' ? 10 : 20);
+                const fontSize = level === 'h1' ? '14px' : level === 'h2' ? '13px' : '12px';
+                const fontWeight = level === 'h1' ? 'bold' : 'normal';
+                
+                html += `
+<div class="file-item" onclick="scrollToHeading('${id}')" 
+     style="padding-left: ${indent + 10}px; font-size: ${fontSize}; font-weight: ${fontWeight};">
+    ${text}
+</div>
+`;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // 滚动到标题
+        function scrollToHeading(id) {
+            const heading = document.getElementById(id);
+            if (heading) {
+                heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        // 切换代码显示
+        function toggleCode(id) {
+            const codeElement = document.getElementById(`code-${id}`);
+            codeElement.classList.toggle('show');
+        }
+
+        // 缩放功能
+        const zoomLevels = {};
+        
+        function zoomInMermaid(id) {
+            if (!zoomLevels[id]) zoomLevels[id] = 100;
+            if (zoomLevels[id] < 300) {
+                zoomLevels[id] += 25;
+                updateZoomSlider(id);
+                applyZoom(id);
+            }
+        }
+
+        function zoomOutMermaid(id) {
+            if (!zoomLevels[id]) zoomLevels[id] = 100;
+            if (zoomLevels[id] > 25) {
+                zoomLevels[id] -= 25;
+                updateZoomSlider(id);
+                applyZoom(id);
+            }
+        }
+
+        function resetZoomMermaid(id) {
+            zoomLevels[id] = 100;
+            updateZoomSlider(id);
+            applyZoom(id);
+        }
+
+        function updateZoom(id) {
+            const slider = document.getElementById(`slider-${id}`);
+            zoomLevels[id] = parseInt(slider.value);
+            applyZoom(id);
+        }
+
+        function updateZoomSlider(id) {
+            const slider = document.getElementById(`slider-${id}`);
+            slider.value = zoomLevels[id];
+            document.getElementById(`zoom-${id}`).textContent = zoomLevels[id] + '%';
+        }
+
+        function applyZoom(id) {
+            const preview = document.getElementById(`preview-${id}`);
+            const svg = preview.querySelector('svg');
+            
+            if (svg) {
+                svg.style.transform = `scale(${zoomLevels[id] / 100})`;
+                svg.style.transformOrigin = 'top center';
+            }
+            
+            document.getElementById(`zoom-${id}`).textContent = zoomLevels[id] + '%';
+        }
+
+        // 全屏功能
+        function toggleFullscreenMermaid(id) {
+            const container = document.getElementById(`container-${id}`);
+            container.classList.add('fullscreen');
+            
+            if (container.requestFullscreen) {
+                container.requestFullscreen().catch(err => console.log(err));
+            }
+        }
+
+        function exitFullscreen() {
+            const containers = document.querySelectorAll('.mermaid-container.fullscreen');
+            containers.forEach(container => {
+                container.classList.remove('fullscreen');
+            });
+            
+            if (document.exitFullscreen) {
+                document.exitFullscreen().catch(err => console.log(err));
+            }
+        }
+
+        // 导出 SVG
+        function exportSVG(id) {
+            const preview = document.getElementById(`preview-${id}`);
+            let svg = preview.querySelector('svg');
+            
+            if (!svg) {
+                alert('图表未加载');
+                return;
+            }
+
+            // 克隆 SVG 并移除变换
+            const svgClone = svg.cloneNode(true);
+            svgClone.style.transform = '';
+            svgClone.style.transformOrigin = '';
+
+            // 确保有正确的属性
+            if (!svgClone.getAttribute('xmlns')) {
+                svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+            }
+
+            const svgData = new XMLSerializer().serializeToString(svgClone);
+            const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `mermaid-${id}.svg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // 导出 PNG（完整修复版 - 使用 crossOrigin 避免跨域）
+        async function exportPNG(id) {
+            try {
+                const preview = document.getElementById(`preview-${id}`);
+                if (!preview) {
+                    alert('图表容器未找到');
+                    return;
+                }
+                
+                const svgElement = preview.querySelector('svg');
+                if (!svgElement) {
+                    alert('图表未加载');
+                    return;
+                }
+
+                // 克隆 SVG
+                const svgClone = svgElement.cloneNode(true);
+                svgClone.removeAttribute('style');
+                svgClone.style.transform = '';
+                svgClone.style.transformOrigin = '';
+                svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+                // 获取尺寸
+                let width, height;
+                try {
+                    const bbox = svgElement.getBBox();
+                    width = Math.ceil(bbox.width + Math.abs(bbox.x) * 2);
+                    height = Math.ceil(bbox.height + Math.abs(bbox.y) * 2);
+                } catch (e) {
+                    width = parseInt(svgElement.getAttribute('width')) || 800;
+                    height = parseInt(svgElement.getAttribute('height')) || 600;
+                }
+
+                width = Math.max(width, 200);
+                height = Math.max(height, 200);
+
+                // 2倍分辨率
+                const scale = 2;
+
+                svgClone.setAttribute('width', width);
+                svgClone.setAttribute('height', height);
+                svgClone.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+                // 获取所有样式并内联到 SVG 中
+                const styles = document.querySelectorAll('style');
+                let styleContent = '';
+                styles.forEach(s => {
+                    styleContent += s.textContent + '\n';
+                });
+
+                // 添加白色背景和样式到 SVG
+                const bgRect = `<rect x="0" y="0" width="${width}" height="${height}" fill="white"/>`;
+                const styleTag = `<style>${styleContent}</style>`;
+
+                const svgContent = new XMLSerializer().serializeToString(svgClone);
+                const fullSvg = `<?xml version="1.0" encoding="UTF-8"?>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+                        ${styleTag}
+                        ${bgRect}
+                        ${svgContent.replace(/<\?xml[^>]*>/, '').replace(/<svg[^>]*>/, '').replace(/<\/svg>/, '')}
+                    </svg>`;
+
+                // 使用 Canvas2D 直接渲染
+                const canvas = document.createElement('canvas');
+                canvas.width = width * scale;
+                canvas.height = height * scale;
+                const ctx = canvas.getContext('2d');
+                ctx.scale(scale, scale);
+
+                // 创建 Blob 并渲染
+                const blob = new Blob([fullSvg], { type: 'image/svg+xml;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+
+                await new Promise((resolve, reject) => {
+                    const img = new Image();
+                    // 关键：设置 crossOrigin 避免 canvas 被污染
+                    img.crossOrigin = 'anonymous';
+                    img.onload = () => {
+                        ctx.drawImage(img, 0, 0, width, height);
+                        URL.revokeObjectURL(url);
+                        resolve();
+                    };
+                    img.onerror = () => {
+                        URL.revokeObjectURL(url);
+                        reject(new Error('图片加载失败'));
+                    };
+                    img.src = url;
+                });
+
+                // 使用 toDataURL 导出
+                const dataUrl = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = dataUrl;
+                link.download = `mermaid-${id}.png`;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                }, 100);
+            } catch (error) {
+                alert('导出 PNG 失败：' + error.message);
+            }
+        }
+
+        // 导出所有图表（改进版）
+        function exportAll() {
+            const containers = document.querySelectorAll('.mermaid-container');
+            if (containers.length === 0) {
+                alert('当前没有可导出的图表');
+                return;
+            }
+
+            let exportCount = 0;
+            const total = containers.length;
+
+            // 创建进度提示
+            const progressDiv = document.createElement('div');
+            progressDiv.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);color:white;padding:30px 40px;border-radius:10px;z-index:99999;text-align:center;';
+            progressDiv.innerHTML = `<div style="font-size:18px;margin-bottom:15px;">📤 正在导出图表</div><div id="exportProgress">0 / ${total}</div><div style="font-size:12px;margin-top:10px;color:#aaa;">请稍候...</div>`;
+            document.body.appendChild(progressDiv);
+
+            // 依次导出每个图表
+            function exportNext(index) {
+                if (index >= total) {
+                    // 全部导出完成
+                    setTimeout(() => {
+                        document.body.removeChild(progressDiv);
+                        alert(`✅ 已成功导出 ${exportCount} / ${total} 个图表`);
+                    }, 500);
+                    return;
+                }
+
+                const container = containers[index];
+                const id = container.id.replace('container-', '');
+
+                try {
+                    const preview = document.getElementById(`preview-${id}`);
+                    const svg = preview.querySelector('svg');
+
+                    if (svg) {
+                        // 直接导出，不使用 setTimeout
+                        exportSinglePNG(id, function() {
+                            exportCount++;
+                            const progressEl = document.getElementById('exportProgress');
+                            if (progressEl) {
+                                progressEl.textContent = `${exportCount} / ${total}`;
+                            }
+                            exportNext(index + 1);
+                        });
+                    } else {
+                        exportNext(index + 1);
+                    }
+                } catch (e) {
+                    exportNext(index + 1);
+                }
+            }
+
+            exportNext(0);
+        }
+
+        // 导出单个 PNG（用于批量导出）
+        function exportSinglePNG(id, callback) {
+            const preview = document.getElementById(`preview-${id}`);
+            const svg = preview.querySelector('svg');
+            
+            if (!svg) {
+                if (callback) callback();
+                return;
+            }
+
+            try {
+                const svgClone = svg.cloneNode(true);
+                svgClone.removeAttribute('style');
+
+                if (!svgClone.getAttribute('xmlns')) {
+                    svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                }
+
+                let width, height;
+                try {
+                    const bbox = svg.getBBox();
+                    width = Math.ceil(bbox.width + bbox.x);
+                    height = Math.ceil(bbox.height + bbox.y);
+                } catch (e) {
+                    width = parseInt(svg.getAttribute('width')) || 800;
+                    height = parseInt(svg.getAttribute('height')) || 600;
+                }
+
+                width = Math.max(width, 100);
+                height = Math.max(height, 100);
+
+                const scale = 2;
+                svgClone.setAttribute('width', width * scale);
+                svgClone.setAttribute('height', height * scale);
+                svgClone.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+                const svgData = new XMLSerializer().serializeToString(svgClone);
+                const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+                const url = URL.createObjectURL(svgBlob);
+
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = width * scale;
+                    canvas.height = height * scale;
+
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    URL.revokeObjectURL(url);
+
+                    canvas.toBlob(function(blob) {
+                        if (blob) {
+                            const pngUrl = URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = pngUrl;
+                            link.download = `mermaid-${id}.png`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(pngUrl);
+                        }
+                        if (callback) callback();
+                    }, 'image/png');
+                };
+
+                img.onerror = function() {
+                    URL.revokeObjectURL(url);
+                    if (callback) callback();
+                };
+
+                img.src = url;
+            } catch (e) {
+                if (callback) callback();
+            }
+        }
+
+        // 监听 ESC 键退出全屏
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                exitFullscreen();
+            }
+        });
+
+        // 页面加载后初始化
+        window.addEventListener('load', initMermaid);
+    </script>
+</body>
+</html>
